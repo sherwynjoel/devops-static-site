@@ -1,0 +1,34 @@
+utputs:
+
+acr_login_server = "devopsacr962.azurecr.io"
+aks_cluster_name = "devops-aks"
+resource_group = "devops-rg"
+PS C:\devops-static-website\devops-static-website\terraform> az group list --output table
+>> az acr list --output table
+>> az aks list --output table
+Name                                    Location       Status
+--------------------------------------  -------------  ---------
+myStaticApp                             centralus      Succeeded
+DemoApp_Grp                             centralus      Succeeded
+myVnetSem                               centralus      Succeeded
+MyVMacRescourceGrp                      centralindia   Succeeded
+myVNetModel                             centralindia   Succeeded
+root                                    southeastasia  Succeeded
+DefaultResourceGroup-SEA                southeastasia  Succeeded
+urk22cs2025                             southeastasia  Succeeded
+myVNetRG                                southeastasia  Succeeded
+NetworkWatcherRG                        southeastasia  Succeeded
+DemoApp_group                           westus2        Succeeded
+moviesdb-rg                             eastus         Succeeded
+fitlog-dev-rg                           eastus         Succeeded
+MC_fitlog-dev-rg_fitlog-dev-aks_eastus  eastus         Succeeded
+devops-rg                               eastus         Succeeded
+MC_devops-rg_devops-aks_eastus          eastus         Succeeded
+NAME          RESOURCE GROUP    LOCATION    SKU    LOGIN SERVER             CREATION DATE         ADMIN ENABLED
+------------  ----------------  ----------  -----  -----------------------  --------------------  ---------------
+devopsacr962  devops-rg         eastus      Basic  devopsacr962.azurecr.io  2025-11-04T10:41:43Z  True
+fitlogdevacr  fitlog-dev-rg     eastus      Basic  fitlogdevacr.azurecr.io  2025-11-04T10:35:59Z  False
+Name            Location    ResourceGroup    KubernetesVersion    CurrentKubernetesVersion    ProvisioningState    Fqdn
+--------------  ----------  ---------------  -------------------  --------------------------  -------------------  ----------------------------------------
+fitlog-dev-aks  eastus      fitlog-dev-rg    1.32                 1.32.7                      Succeeded            fitlog-dev-kspof3tr.hcp.eastus.azmk8s.io
+devops-aks      eastus      devops-rg        1.32                 1.32.7                      Succeeded            devopsdemo-x5m0ght9.hcp.eastus.azmk8s.io
