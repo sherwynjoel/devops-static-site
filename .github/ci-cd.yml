@@ -1,43 +1,72 @@
-name: CI/CD Pipeline - DevOps Static Site
+name: CI/CD Pipeline for DevOps Static Website
 
 on:
   push:
     branches:
       - main
 
-env:
-  AZURE_CONTAINER_REGISTRY: devopsacr707
-  IMAGE_NAME: devops-static-site
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # Step 1: Checkout the repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Step 2: Set up Node.js (optional, if you have build steps)
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      # Step 3: Install dependencies (skip if it's pure HTML/CSS/JS)
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then
+            npm install
+          else
+            echo "No package.json found, skipping npm install"
+          fi
+
+      # Step 4: Build project (if applicable)
+      - name: Build project
+        run: |
+          if [ -f package.json ]; then
+            npm run build
+          else
+            echo "No build step, static files only"
+          fi
+
+      # Step 5: Log in to Azure
       - name: Log in to Azure
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Log in to Azure Container Registry
-        run: az acr login --name ${{ env.AZURE_CONTAINER_REGISTRY }}
+      # Step 6: Set up Azure CLI
+      - name: Set up Azure CLI
+        uses: azure/CLI@v2
+        with:
+          azcliversion: 2.64.0
+          inlineScript: |
+            echo "✅ Azure CLI is ready"
 
-      - name: Build Docker image
-        run: docker build -t ${{ env.IMAGE_NAME }}:latest .
+      # Step 7: Build and push Docker image to Azure Container Registry (ACR)
+      - name: Build and push Docker image
+        run: |
+          az acr login --name devopsstaticregistry
+          docker build -t devopsstaticregistry.azurecr.io/devops-static-site:latest .
+          docker push devopsstaticregistry.azurecr.io/devops-static-site:latest
 
-      - name: Tag Docker image for ACR
-        run: docker tag ${{ env.IMAGE_NAME }}:latest ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-
-      - name: Push Docker image to ACR
-        run: docker push ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest
-
-      - name: Get AKS credentials
-        run: az aks get-credentials --resource-group devops-rg --name devops-aks --overwrite-existing
-
+      # Step 8: Deploy to Azure Kubernetes Service (AKS)
       - name: Deploy to AKS
         run: |
-          kubectl create deployment devops-static-site --image=${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:latest --dry-run=client -o yaml | kubectl apply -f -
-          kubectl expose deployment devops-static-site --type=LoadBalancer --port=80 --target-port=80 --dry-run=client -o yaml | kubectl apply -f -
+          az aks get-credentials --resource-group devops-static-rg --name devops-static-aks --overwrite-existing
+          kubectl apply -f k8s-deployment.yml
+          kubectl rollout status deployment/devops-static-site
+
+      # Step 9: Confirm Deployment
+      - name: Verify Deployment
+        run: |
+          kubectl get services -o wide
